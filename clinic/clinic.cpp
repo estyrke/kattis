@@ -1,53 +1,116 @@
 #include <iostream>
-#include <vector>
-#include <map>
+#include <list>
+#include <set>
+#include <algorithm>
+#include <fstream>
+#include <queue>
 
-std::map<std::pair<int, int>, int> solve_cache;
-std::vector<std::vector<int>> adj;
+class Clinic;
 
-int solve(int l, int r)
+class Patient
 {
-    if (l >= r)
-        return 0;
+public:
+    std::string name;
+    int64_t base_priority;
 
-    if (r - l == 1)
-        return adj[l][r];
+    Patient(const std::string& name, int64_t base_priority) : name(name), base_priority(base_priority) {}
 
-    if (solve_cache.count(std::make_pair(l, r)))
+    bool operator< (const Patient& other) const {
+        if (this->base_priority < other.base_priority)
+            return true;
+        if (this->base_priority > other.base_priority)
+            return false;
+        return this->name > other.name;
+    }
+};
+
+class Clinic
+{
+    friend class Patient;
+    int time_factor;
+    int current_time;
+    std::priority_queue<Patient> patients;
+    std::set<std::string> dead_patients;
+
+    void handle_arrival(const std::string &name, int severity)
     {
-        return solve_cache[std::make_pair(l, r)];
+        // P = S + K * W = S + K * (current - arrival) = S + K * current - K * arrival
+        // P_base = S - K * arrival
+        int64_t base_priority = int64_t(severity) - int64_t(this->time_factor) * int64_t(this->current_time);
+
+        this->patients.push(Patient(name, base_priority));
     }
 
-    int res = 0;
+    void handle_call() {
+        if (patients.empty()) {
+            std::cout << "doctor takes a break" << std::endl;
+            return;
+        }
 
-    for (int k = l; k <= r; k++)
-    {
-        res = std::max(res, solve(l + 1, k - 1) + solve(k + 1, r) + adj[l][k]);
+        std::string name = patients.top().name;
+        patients.pop();
+
+        if (this->dead_patients.count(name)) {
+            // Patient is dead, retry
+            dead_patients.erase(name);
+            return handle_call();
+        }
+
+        std::cout << name << std::endl;
     }
 
-    solve_cache[std::make_pair(l, r)] = res;
-    return res;
-}
+    void handle_leave(const std::string& name) {
+        this->dead_patients.insert(name);
+    }
+
+public:
+    void run()
+    {
+        std::cin.sync_with_stdio(false);
+        std::cin.tie(NULL);
+        std::istream &is = std::cin;
+        //std::ifstream is("test_huge.txt");
+        int n;
+        is >> n >> this->time_factor;
+
+        for (int i = 0; i < n; i++)
+        {
+            int q;
+            is >> q;
+
+            is >> this->current_time;
+
+            switch (q)
+            {
+            case 1: {
+                int severity;
+                std::string name;
+
+                is >> name >> severity;
+
+                this->handle_arrival(name, severity);
+                break;
+            }
+            case 2:
+                this->handle_call();
+                break;
+            case 3: {
+                std::string name;
+
+                is >> name;
+                this->handle_leave(name);
+                break;
+            }
+
+            default:
+                throw new std::runtime_error("Unknown event " + std::to_string(q) + "!");
+            }
+        }
+    }
+};
 
 int main()
 {
-    int n;
-    std::cin >> n;
-
-    adj.resize(n);
-
-    for (int r = 0; r < n; ++r)
-    {
-        adj[r].resize(n);
-        for (int c = 0; c < n; ++c)
-        {
-            int adjbit;
-            std::cin >> adjbit;
-            adj[r][c] = adjbit;
-        }
-    }
-
-    std::cout << solve(0, n - 1) << std::endl;
-
+    Clinic().run();
     return 0;
 }

@@ -8,8 +8,9 @@
 			"args": [
 				"-std=c++17",
 				"-stdlib=libc++",
+				"-fcolor-diagnostics",
 				"-Wall",
-				"-g",
+				"-O2",
 				"${file}",
 				"-o",
 				"${workspaceFolder}/bin/${fileBasenameNoExtension}"
@@ -25,6 +26,30 @@
 				"isDefault": true
 			},
 			"detail": "compiler: /usr/bin/clang++"
+		},
+		{
+			"type": "cppbuild",
+			"label": "C/C++: clang++ debug build active file",
+			"command": "/usr/bin/clang++",
+			"args": [
+				"-std=c++17",
+				"-stdlib=libc++",
+				"-fcolor-diagnostics",
+				"-Wall",
+				"-g",
+				"${file}",
+				"-o",
+				"${workspaceFolder}/bin/${fileBasenameNoExtension}"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"detail": "compiler: /usr/bin/clang++"
 		}
+
 	]
 }
