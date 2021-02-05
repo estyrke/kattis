@@ -102,7 +102,7 @@ func DownloadToMd(url string, outfile string) error {
 
 	// The default commonmark text formatting rule escapes backslashes, which breaks
 	// the nice tex2jax math tags in some problems.  So we add our own rule which
-	// cuts the escapes again
+	// avoids the escaping.
 	converter.AddRules(md.Rule{Filter: []string{"span"},
 		Replacement: func(content string, selec *goquery.Selection, opt *md.Options) *string {
 			// If the span element has not the classname `tex2jax_process` return nil.
@@ -110,9 +110,8 @@ func DownloadToMd(url string, outfile string) error {
 			if !selec.HasClass("tex2jax_process") {
 				return nil
 			}
-			content = strings.TrimSpace(content)
-			content = strings.ReplaceAll(content, "\\\\", "\\")
-			fmt.Println(content)
+
+			content = strings.TrimSpace(selec.Text())
 			return md.String(content)
 		}})
 
@@ -182,10 +181,6 @@ func main() {
 	}
 
 	//Download description
-	err = Download(fmt.Sprintf("https://open.kattis.com/problems/%s", problem), "problem.html")
-	if err != nil {
-		log.Println("Error downloading description")
-	}
 	err = DownloadToMd(fmt.Sprintf("https://open.kattis.com/problems/%s", problem), "problem.md")
 	if err != nil {
 		log.Println("Error downloading description")

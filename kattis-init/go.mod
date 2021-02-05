@@ -1,4 +1,4 @@
-module kattis-init
+module github.com/estyrke/kattis/kattis-init
 
 go 1.15
 
